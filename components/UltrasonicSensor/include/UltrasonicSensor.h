@@ -1,5 +1,5 @@
-#ifndef SR04_H
-#define SR04_H
+#ifndef UltrasonicSensor_H
+#define UltrasonicSensor_H
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -9,21 +9,20 @@
 //#define PULSE_TIMEOUT 150000L	// 100ms
 #define DEFAULT_DELAY 10
 #define DEFAULT_PINGS 5
-class SR04 {
+class UltrasonicSensor {
 public:
 	
 	/**
 	* Constructor
-	* Ultrasonic sensor SR04, four connections pins
-	* VCC, ECHO, TRIGGER, GND
-	* <br>
+	* Ultrasonic sensor has 4 connections pins: VCC, ECHO, TRIGGER, GND
+	* 
 	* \param echoPin digital INPUT-Pin for measuring distance
 	* \param triggerPin if 10us high a trigger signal is generated from 
-	*					SR04
+	*					UltrasonicSensor
 	*
 	* \return void
 	*/
-	SR04(gpio_num_t echoPin, gpio_num_t triggerPin);
+	UltrasonicSensor(gpio_num_t echoPin, gpio_num_t triggerPin);
 
 	/**
 	* Do a measurment for this sensor. Return distance as long
@@ -32,40 +31,12 @@ public:
 	*/
 	long Distance();
 	
-	/**
-	* Do count measurents and calculate the average. 
-	* To avoid defilement from ow/high peaks, min/max values
-	* are substracted from the average
-	*
-	* \param wait delay between measurements, default = DEFAULT_DELAY/ms
-	* \param count number of measurements, default DEFAULT_PINGS
-	* \return long distance in centimeter
-	**/
-	//long DistanceAvg(int wait=DEFAULT_DELAY, int count=DEFAULT_PINGS);
-	
-	/**
-	* Do only a ping. Get result with methode getDistance()
-	* 
-	* \param keine
-	*/
-	//void Ping() ;
-	
-	/**
-	* return latest distance. Methode Ping() should be called before
-	* \param keine
-	* \return Distanz in Zentimeter
-	*/
-	//long getDistance();
-	
-
 private:
 	/**
 	* Do the measurement calculation and return result in centimeter
-	* SR04 measure echo time to obstacle and return way. 
-	* <br>
+	* UltrasonicSensor measure echo time to obstacle and return way. 
 	* Sound travels with 340m/sec
-	* <br>
-	* Example: Obstace 100cm away from SR04. Measure time is 100cm to
+	* Example: Obstace 100cm away from UltrasonicSensor. Measure time is 100cm to
 	* obstacle and 100cm return = 200cm
 	* <br>
 	* 1sec = 1000ms = 1.000.000uS

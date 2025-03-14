@@ -1,5 +1,5 @@
 
-#include "SR04.h"
+#include "UltrasonicSensor.h"
 #include "driver/gpio.h"
 #include "esp_timer.h"
 #include "esp_log.h"
@@ -7,7 +7,7 @@
 static const char *TAG = "Sensor";
 #define PULSE_TIMEOUT 1000000  // 1s
 
-SR04::SR04(gpio_num_t echoPin, gpio_num_t triggerPin) {
+UltrasonicSensor::UltrasonicSensor(gpio_num_t echoPin, gpio_num_t triggerPin) {
     _echoPin = echoPin;
     _triggerPin = triggerPin;
     gpio_reset_pin(_echoPin);
@@ -17,7 +17,6 @@ SR04::SR04(gpio_num_t echoPin, gpio_num_t triggerPin) {
     _autoMode = false;
     _distance = 999;
 }
-
 
 long pulseIn(gpio_num_t pin, uint8_t state, int64_t timeout) {
     int64_t start = esp_timer_get_time();
@@ -45,7 +44,7 @@ long pulseIn(gpio_num_t pin, uint8_t state, int64_t timeout) {
     return esp_timer_get_time() - start;
 }
 
-long SR04::Distance() {
+long UltrasonicSensor::Distance() {
     long d = 0;
     _duration = 0;
     gpio_set_level(_triggerPin, false);
@@ -61,7 +60,7 @@ long SR04::Distance() {
     return d;
 }
 
-long SR04::MicrosecondsToCentimeter(long duration) {
+long UltrasonicSensor::MicrosecondsToCentimeter(long duration) {
     long d = (duration * 100) / 5882;
     //d = (d == 0)?999:d;
     return d;
