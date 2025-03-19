@@ -7,15 +7,13 @@
 static const char *TAG = "Sensor";
 #define PULSE_TIMEOUT 1000000  // 1s
 
-UltrasonicSensor::UltrasonicSensor(gpio_num_t echoPin, gpio_num_t triggerPin) {
-    _echoPin = echoPin;
-    _triggerPin = triggerPin;
-    gpio_reset_pin(_echoPin);
-    gpio_reset_pin(_triggerPin);
-    gpio_set_direction(_echoPin, GPIO_MODE_INPUT);
-    gpio_set_direction(_triggerPin, GPIO_MODE_OUTPUT);
-    _autoMode = false;
-    _distance = 999;
+UltrasonicSensor::UltrasonicSensor(gpio_num_t _echoPin, gpio_num_t _triggerPin) {
+    echoPin = _echoPin;
+    triggerPin = _triggerPin;
+    gpio_reset_pin(echoPin);
+    gpio_reset_pin(triggerPin);
+    gpio_set_direction(echoPin, GPIO_MODE_INPUT);
+    gpio_set_direction(triggerPin, GPIO_MODE_OUTPUT);
 }
 
 long pulseIn(gpio_num_t pin, uint8_t state, int64_t timeout) {
@@ -44,28 +42,36 @@ long pulseIn(gpio_num_t pin, uint8_t state, int64_t timeout) {
     return esp_timer_get_time() - start;
 }
 
-long UltrasonicSensor::Distance() {
-    long d = 0;
-    _duration = 0;
-    gpio_set_level(_triggerPin, false);
+long UltrasonicSensor::measureDistance() {
+    // Send TRIGGER signal
+    gpio_set_level(triggerPin, false);
     vTaskDelay(2 / portTICK_PERIOD_MS);  
-    gpio_set_level(_triggerPin, true);
+    gpio_set_level(triggerPin, true);
     vTaskDelay(10 / portTICK_PERIOD_MS);
-    gpio_set_level(_triggerPin, false);
-    vTaskDelay(2 / portTICK_PERIOD_MS);  
-    _duration = pulseIn(_echoPin, 1, PULSE_TIMEOUT);
-    //ESP_LOGI(TAG, "_duration %ld", _duration);
-    d = MicrosecondsToCentimeter(_duration);
+    gpio_set_level(triggerPin, false);
+    vTaskDelay(2 / portTICK_PERIOD_MS);
+
+    // Measure the ECHO signal
+    long duration = pulseIn(echoPin, 1, PULSE_TIMEOUT);
+    long distance_in_cm = convertMicrosecToCm(duration);
     esp_rom_delay_us(25000);  
-    return d;
+    return distance_in_cm;
 }
 
-long UltrasonicSensor::MicrosecondsToCentimeter(long duration) {
-    long d = (duration * 100) / 5882;
-    //d = (d == 0)?999:d;
-    return d;
+long UltrasonicSensor::convertMicrosecToCm(long duration) {
+    /**
+	* Do the measurement calculation and return result in centimeter
+	* Sound travels with 340m/sec speed.
+	* Example: Obstace 100cm away from sensor. Measure time is 100cm to
+	* obstacle and 100cm return = 200cm
+	* 
+	* 1sec = 1000ms = 1.000.000uS
+	* 1.000.000 / 340 = Distance in microseconds for 100cm
+	* 2941uS fuer 100cm = 5882 uS fuer 200cm
+	*
+	* duration / 5882 * 100 = distance in cm
+	*/	
+    long distance_in_cm = (duration * 100) / 5882;
+
+    return distance_in_cm;
 }
-
-
-
-
