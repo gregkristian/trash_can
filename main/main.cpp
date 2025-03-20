@@ -5,10 +5,15 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
-#include "UltrasonicSensor.h" // Update the path to the correct location of UltrasonicSensor.h
-#include "Servo.h"
-static const char *TAG = "Main";
 
+#include "UltrasonicSensor.h"
+#include "Servo.h"
+
+#define DELAY_MS        500  // Delay in main loop
+#define DISTANCE_SENSOR 10   // Distance in cm to open the lock
+#define TIMEOUT_LOCK    2000 // Open for 2 seconds then close if sensor doesn't detect anything
+
+static const char *TAG = "Main";
 
 extern "C" void app_main(void)
 { 
@@ -17,20 +22,36 @@ extern "C" void app_main(void)
     UltrasonicSensor UltrasonicSensor((gpio_num_t)23, (gpio_num_t)20);
     Servo servo;
     servo.servo_init();
-    servo.servo_set_angle(0);
-    vTaskDelay(pdMS_TO_TICKS(3000));
-    
+    servo.servo_set_angle(100);
+    vTaskDelay(pdMS_TO_TICKS(1000));
 
+    int timer = TIMEOUT_LOCK;
+    bool lock_is_open = false;
+    
     while(1) {
         long dist = UltrasonicSensor.measureDistance();
-        ESP_LOGI(TAG, "Distance %ld cm", dist);
-        if (dist < 10) {
-            ESP_LOGI(TAG, "OPENING LOCK");
-            servo.servo_set_angle(90);
-        } else {
+        vTaskDelay(pdMS_TO_TICKS(200));
+
+        // Open the lock if object detected
+        if (dist < DISTANCE_SENSOR && lock_is_open == false) {
+            ESP_LOGI(TAG, "Object detected, distance %ld cm. OPENING LOCK", dist);
             servo.servo_set_angle(0);
+            lock_is_open = true;
         }
         
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        // Object no longer detected. Start countdown to close the lock, then close it when timout expires
+        if (dist >= DISTANCE_SENSOR && lock_is_open == true) {
+            ESP_LOGI(TAG, "Object no longer detected, counting down to close the lock");
+            timer -= DELAY_MS;
+
+            // Timer expired, close the lock
+            if (timer <= 0) {
+                ESP_LOGI(TAG, "Timeout. CLOSING LOCK");
+                servo.servo_set_angle(160);
+                lock_is_open = false;
+                timer = TIMEOUT_LOCK;
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(DELAY_MS));
     }
 }
