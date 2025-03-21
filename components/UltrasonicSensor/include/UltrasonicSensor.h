@@ -17,7 +17,7 @@ public:
 	* triggerPin generates trigger signal from UltrasonicSensor
 	* echoPin is the digital INPUT-Pin for measuring distance
 	*/
-	UltrasonicSensor(gpio_num_t echoPin, gpio_num_t triggerPin);
+UltrasonicSensor(gpio_num_t _triggerPin, gpio_num_t _echoPin);
 
 	// Do a measurment for this sensor. Return distance in cm
 	long measureDistance();

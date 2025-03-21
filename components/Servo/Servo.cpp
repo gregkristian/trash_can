@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include "Servo.h"
 #include "driver/ledc.h"

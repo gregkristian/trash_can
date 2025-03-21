@@ -7,7 +7,7 @@
 static const char *TAG = "Sensor";
 #define PULSE_TIMEOUT 1000000  // 1s
 
-UltrasonicSensor::UltrasonicSensor(gpio_num_t _echoPin, gpio_num_t _triggerPin) {
+UltrasonicSensor::UltrasonicSensor(gpio_num_t _triggerPin, gpio_num_t _echoPin) {
     echoPin = _echoPin;
     triggerPin = _triggerPin;
     gpio_reset_pin(echoPin);
